@@ -18,6 +18,14 @@ export interface Bill {
   grandTotal: number;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  hsn: string;
+  rate: number;
+  gstRate: number;
+}
+
 export interface Settings {
   shopName: string;
   shopAddress: string;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import Link from "next/link";
 import { Bill, BillItem, Settings, GST_RATES, DEFAULT_SETTINGS } from "@/lib/types";
 import { getBills, saveBill, deleteBill, getSettings } from "@/lib/storage";
 import { calculateBill, formatCurrency } from "@/lib/gst";
@@ -15,33 +16,18 @@ function newItem(gstRate: number): BillItem {
 }
 
 export default function Home() {
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [bills, setBills] = useState<Bill[]>(() => typeof window !== "undefined" ? getBills() : []);
+  const [settings] = useState<Settings>(() => typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS);
   const [view, setView] = useState<"list" | "form">("list");
-  const [mounted, setMounted] = useState(false);
 
-  // Form state
+  // Form state — initialize items with settings default GST rate
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [gstType, setGstType] = useState<"intra" | "inter">("intra");
-  const [items, setItems] = useState<BillItem[]>([newItem(18)]);
-
-  useEffect(() => {
-    setBills(getBills());
-    setSettings(getSettings());
-    setMounted(true);
-  }, []);
-
-  // Update default GST rate when settings load
-  useEffect(() => {
-    if (settings.defaultGSTRate !== 18) {
-      setItems((prev) =>
-        prev.map((it) =>
-          it.gstRate === 18 ? { ...it, gstRate: settings.defaultGSTRate } : it
-        )
-      );
-    }
-  }, [settings.defaultGSTRate]);
+  const [items, setItems] = useState<BillItem[]>(() => {
+    const s = typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS;
+    return [newItem(s.defaultGSTRate)];
+  });
 
   const calc = calculateBill(items, gstType);
 
@@ -108,21 +94,19 @@ export default function Home() {
     setBills(getBills());
   }
 
-  if (!mounted) return <div className="min-h-screen bg-white" />;
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div suppressHydrationWarning className="min-h-screen bg-gray-50">
       {view === "list" ? (
         /* ---- BILL LIST ---- */
         <div className="max-w-lg mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900">BillBuddy</h1>
-            <a href="/settings" className="text-gray-500 hover:text-gray-700 p-2" aria-label="Settings">
+            <Link href="/settings" className="text-gray-500 hover:text-gray-700 p-2" aria-label="Settings">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-            </a>
+            </Link>
           </div>
 
           <button

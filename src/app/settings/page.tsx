@@ -1,19 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
+import Link from "next/link";
 import { Settings, GST_RATES, DEFAULT_SETTINGS } from "@/lib/types";
 import { getSettings, saveSettings } from "@/lib/storage";
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<Settings>(() => typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setSettings(getSettings());
-    setMounted(true);
-  }, []);
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -31,17 +26,15 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  if (!mounted) return <div className="min-h-screen bg-white" />;
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div suppressHydrationWarning className="min-h-screen bg-gray-50">
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
-          <a href="/" className="text-gray-500 hover:text-gray-700 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
+          <Link href="/" className="text-gray-500 hover:text-gray-700 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-          </a>
+          </Link>
           <h1 className="text-xl font-bold text-gray-900">Settings</h1>
         </div>
 
@@ -84,6 +77,7 @@ export default function SettingsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Logo / Letterhead</label>
             {settings.logo && (
               <div className="mb-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={settings.logo} alt="Logo preview" className="h-16 object-contain border rounded" />
                 <button
                   onClick={() => { setSettings((s) => ({ ...s, logo: "" })); if (fileRef.current) fileRef.current.value = ""; }}

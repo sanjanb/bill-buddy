@@ -174,18 +174,6 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
     ];
   });
 
-  // Totals row
-  if (isInter) {
-    bodyRows.push(["", "", "", "", "", "Subtotal", formatCurrency(calc.totalBeforeTax), ""]);
-    bodyRows.push(["", "", "", "", "", "IGST", formatCurrency(calc.totalGST), ""]);
-    bodyRows.push(["", "", "", "", "", "GRAND TOTAL", formatCurrency(calc.grandTotal), ""]);
-  } else {
-    bodyRows.push(["", "", "", "", "", "Subtotal", formatCurrency(calc.totalBeforeTax), formatCurrency(calc.totalBeforeTax), ""]);
-    bodyRows.push(["", "", "", "", "", "CGST", formatCurrency(calc.totalGST / 2), formatCurrency(calc.totalGST / 2), ""]);
-    bodyRows.push(["", "", "", "", "", "SGST", formatCurrency(calc.totalGST / 2), formatCurrency(calc.totalGST / 2), ""]);
-    bodyRows.push(["", "", "", "", "", "GRAND TOTAL", formatCurrency(calc.grandTotal), formatCurrency(calc.grandTotal), ""]);
-  }
-
   autoTable(doc, {
     startY: y,
     head: [headerRow],
@@ -207,34 +195,55 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
     },
     columnStyles: {
       0: { cellWidth: 8, halign: "center" },
-      2: { halign: "center" },
-      3: { halign: "center" },
-      4: { halign: "right" },
-      5: { halign: "right" },
-      6: { halign: "right" },
-    },
-    didParseCell: (data) => {
-      // Style the summary rows (last 3-4 rows)
-      const totalRows = bill.items.length;
-      const summaryStart = totalRows; // first summary row index in body
-      if (data.section === "body" && data.row.index >= summaryStart) {
-        data.cell.styles.fontStyle = "bold";
-        data.cell.styles.fontSize = 8.5;
-        if (data.column.index === 0) {
-          // Span the description columns for summary rows
-        }
-      }
-      // Grand total row highlight
-      if (data.section === "body" && data.row.index === totalRows + (isInter ? 2 : 3)) {
-        data.cell.styles.fillColor = [240, 240, 255];
-        data.cell.styles.fontStyle = "bold";
-        data.cell.styles.fontSize = 9;
-      }
+      1: { cellWidth: isInter ? 40 : 32 },
+      2: { halign: "center", cellWidth: 16 },
+      3: { halign: "center", cellWidth: 12 },
+      4: { halign: "right", cellWidth: 22 },
+      5: { halign: "right", cellWidth: 22 },
+      6: { halign: "right", cellWidth: 22 },
     },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  y = (doc as any).lastAutoTable.finalY + 6;
+  y = (doc as any).lastAutoTable.finalY + 4;
+
+  // ── Summary Block (outside the table) ──
+  const summaryX = M + CW - 72; // right-aligned block, 72mm wide
+  const labelW = 38;
+  const valW = 34;
+  const lineH = 6;
+
+  // Subtotal
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text("Subtotal", summaryX, y);
+  doc.text(formatCurrency(calc.totalBeforeTax), summaryX + labelW + valW, y, { align: "right" });
+  y += lineH;
+
+  // Tax
+  if (isInter) {
+    doc.text("IGST", summaryX, y);
+    doc.text(formatCurrency(calc.totalGST), summaryX + labelW + valW, y, { align: "right" });
+  } else {
+    doc.text("CGST", summaryX, y);
+    doc.text(formatCurrency(calc.totalGST / 2), summaryX + labelW + valW, y, { align: "right" });
+    y += lineH;
+    doc.text("SGST", summaryX, y);
+    doc.text(formatCurrency(calc.totalGST / 2), summaryX + labelW + valW, y, { align: "right" });
+  }
+  y += lineH;
+
+  // Divider line
+  doc.setDrawColor(30, 30, 30);
+  doc.setLineWidth(0.5);
+  doc.line(summaryX, y - 2, summaryX + labelW + valW, y - 2);
+
+  // Grand Total
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("Grand Total", summaryX, y + 2);
+  doc.text(formatCurrency(calc.grandTotal), summaryX + labelW + valW, y + 2, { align: "right" });
+  y += lineH + 3;
 
   // ── Amount in Words ──
   doc.setFont("helvetica", "bold");

@@ -12,24 +12,26 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Improved focus rings */
 input:focus,
 textarea:focus,
 select:focus {
   outline: 2px solid #6366f1;
   outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
+}
+
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
 }
 
 /* Hide number input spinners */
@@ -42,8 +44,17 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Input focus ring */
-input:focus, textarea:focus, select:focus {
-  outline: 2px solid #6366f1;
-  outline-offset: 1px;
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
 }

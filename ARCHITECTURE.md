@@ -11,13 +11,21 @@ BillBuddy is a client-side Next.js app. There is **no backend, no database, no A
 ```mermaid
 graph LR
     subgraph Browser
-        A[React UI] --> B[lib/ modules]
+        A[React UI] --> B[lib modules]
         B --> C[(localStorage)]
         A --> D[jsPDF]
         D --> E[PDF Blob]
     end
     E --> F((Download))
     E --> G((WhatsApp Share))
+
+    style A fill:#6366f1,color:#fff,stroke:#4f46e5
+    style B fill:#8b5cf6,color:#fff,stroke:#7c3aed
+    style C fill:#f59e0b,color:#000,stroke:#d97706
+    style D fill:#10b981,color:#fff,stroke:#059669
+    style E fill:#ec4899,color:#fff,stroke:#db2777
+    style F fill:#3b82f6,color:#fff,stroke:#2563eb
+    style G fill:#22c55e,color:#fff,stroke:#16a34a
 ```
 
 ---
@@ -26,25 +34,25 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph Frontend["Frontend (Next.js + Tailwind)"]
-        UI[page.tsx — Bill Form & List]
-        STG[settings/page.tsx — Settings]
+    subgraph Frontend["Frontend - Next.js + Tailwind"]
+        UI["page.tsx - Bill Form & List"]
+        STG["settings/page.tsx - Settings"]
     end
 
-    subgraph Core["Core Logic (src/lib/)"]
-        T[types.ts — Interfaces & Constants]
-        S[storage.ts — localStorage CRUD]
-        G[gst.ts — GST Calculation]
-        P[pdf.ts — PDF Generation]
+    subgraph Core["Core Logic - src/lib"]
+        T["types.ts - Interfaces & Constants"]
+        S["storage.ts - localStorage CRUD"]
+        G["gst.ts - GST Calculation"]
+        P["pdf.ts - PDF Generation"]
     end
 
     subgraph Storage["Browser Storage"]
-        LS[(localStorage)]
+        LS[("localStorage")]
     end
 
-    subgraph External["External"]
-        JSPDF[jsPDF + autotable]
-        SHARE[Web Share API / WhatsApp]
+    subgraph External["External Services"]
+        JSPDF["jsPDF + autotable"]
+        SHARE["Web Share API / WhatsApp"]
     end
 
     UI --> S
@@ -56,6 +64,16 @@ graph TB
     P --> G
     P --> JSPDF
     P --> SHARE
+
+    style UI fill:#6366f1,color:#fff,stroke:#4f46e5
+    style STG fill:#818cf8,color:#fff,stroke:#6366f1
+    style T fill:#a78bfa,color:#fff,stroke:#8b5cf6
+    style S fill:#f59e0b,color:#000,stroke:#d97706
+    style G fill:#f97316,color:#fff,stroke:#ea580c
+    style P fill:#10b981,color:#fff,stroke:#059669
+    style LS fill:#eab308,color:#000,stroke:#ca8a04
+    style JSPDF fill:#14b8a6,color:#fff,stroke:#0d9488
+    style SHARE fill:#22c55e,color:#fff,stroke:#16a34a
 ```
 
 ---
@@ -147,13 +165,20 @@ When shop and customer are in the **same state**:
 
 ```mermaid
 graph LR
-    A[Item: qty × rate] --> B[amount]
-    B --> C["gstAmount = amount × gstRate / 100"]
+    A["qty x rate"] --> B[amount]
+    B --> C["gstAmount = amount x gstRate / 100"]
     C --> D["cgst = gstAmount / 2"]
     C --> E["sgst = gstAmount / 2"]
     B --> F[grandTotal]
     D --> F
     E --> F
+
+    style A fill:#6366f1,color:#fff,stroke:#4f46e5
+    style B fill:#f59e0b,color:#000,stroke:#d97706
+    style C fill:#f97316,color:#fff,stroke:#ea580c
+    style D fill:#22c55e,color:#fff,stroke:#16a34a
+    style E fill:#10b981,color:#fff,stroke:#059669
+    style F fill:#ec4899,color:#fff,stroke:#db2777
 ```
 
 **Example:** 2 × ₹450 rice bags at 18% GST
@@ -168,11 +193,17 @@ When shop and customer are in **different states**:
 
 ```mermaid
 graph LR
-    A[Item: qty × rate] --> B[amount]
-    B --> C["gstAmount = amount × gstRate / 100"]
+    A["qty x rate"] --> B[amount]
+    B --> C["gstAmount = amount x gstRate / 100"]
     C --> D["igst = gstAmount"]
     B --> E[grandTotal]
     D --> E
+
+    style A fill:#6366f1,color:#fff,stroke:#4f46e5
+    style B fill:#f59e0b,color:#000,stroke:#d97706
+    style C fill:#f97316,color:#fff,stroke:#ea580c
+    style D fill:#8b5cf6,color:#fff,stroke:#7c3aed
+    style E fill:#ec4899,color:#fff,stroke:#db2777
 ```
 
 **Same example:** IGST (18%) = ₹162, **Total: ₹1,062**
@@ -194,12 +225,16 @@ sequenceDiagram
     participant LS as localStorage
 
     B->>R: Loads page
-    R->>LS: getBills() → billbuddy_bills
+    R->>LS: getBills()
     LS-->>R: Bill[] or []
-    R->>LS: getSettings() → billbuddy_settings
+    R->>LS: getSettings()
     LS-->>R: Settings or defaults
-    R->>R: useState(() => ...) — lazy init
+    R->>R: useState lazy init
     R-->>B: Renders bill list
+
+    rect rgb(99, 102, 241)
+    Note right of R: Client-side only
+    end
 ```
 
 ### 2. Creating a Bill
@@ -210,13 +245,17 @@ sequenceDiagram
     participant R as React UI
     participant G as gst.ts
 
-    U->>R: Tap "+ New Bill"
-    R->>R: view = "form"
+    U->>R: Tap + New Bill
+    R->>R: view = form
     U->>R: Enter customer name, phone, GST type
     U->>R: Add items (name, HSN, qty, rate, GST%)
     R->>G: calculateBill(items, gstType)
-    G-->>R: BillCalculation (subtotals, tax, grand total)
+    G-->>R: BillCalculation
     R-->>U: Live summary updates
+
+    rect rgb(16, 185, 129)
+    Note right of R: Real-time calculation
+    end
 ```
 
 ### 3. Saving a Bill
@@ -228,53 +267,85 @@ sequenceDiagram
     participant S as storage.ts
     participant LS as localStorage
 
-    U->>R: Tap "Save & Download" / "Share" / "Save Only"
-    R->>R: buildBill() — creates Bill object with ID, date, items, totals
+    U->>R: Tap Save & Download / Share / Save Only
+    R->>R: buildBill() creates Bill object
     R->>S: saveBill(bill)
     S->>LS: Read existing bills
     LS-->>S: Bill[]
     S->>S: Prepend new bill (newest first)
     S->>LS: Write updated array
-    R->>R: setBills(getBills()) — re-read & re-render
-    R->>R: setView("list"), resetForm()
+    R->>R: setBills re-read & re-render
+    R->>R: setView list, resetForm
+
+    rect rgb(245, 158, 11)
+    Note right of LS: localStorage persistence
+    end
 ```
 
 ### 4. PDF Generation
 
 ```mermaid
 flowchart TD
-    A[downloadPDF / sharePDF] --> B[generateBillPDF]
-    B --> C[Create jsPDF A4 document]
-    C --> D[Page 1: TAX INVOICE]
-    C --> E[Page 2: TERMS & CONDITIONS]
+    A["downloadPDF / sharePDF"] --> B["generateBillPDF"]
+    B --> C["Create jsPDF A4 document"]
+    C --> D["Page 1: TAX INVOICE"]
+    C --> E["Page 2: TERMS AND CONDITIONS"]
 
-    D --> D1[Header: Logo + Shop + GSTIN]
-    D --> D2["TAX INVOICE" title bar"]
-    D --> D3[Invoice #, Date, GST Type]
-    D --> D4[Buyer: Name, Phone]
-    D --> D5[Items Table — autotable]
-    D --> D6[Tax Summary: CGST/SGST or IGST]
-    D --> D7[Grand Total]
-    D --> D8[Amount in Words]
-    D --> D9[Reverse Charge Declaration]
-    D --> D10[Authorised Signatory]
+    D --> D1["Header: Logo + Shop + GSTIN"]
+    D --> D2["TAX INVOICE title bar"]
+    D --> D3["Invoice No, Date, GST Type"]
+    D --> D4["Buyer: Name, Phone"]
+    D --> D5["Items Table via autotable"]
+    D --> D6["Tax Summary: CGST/SGST or IGST"]
+    D --> D7["Grand Total"]
+    D --> D8["Amount in Words"]
+    D --> D9["Reverse Charge Declaration"]
+    D --> D10["Authorised Signatory"]
 
-    E --> E1[10 Standard GST Terms]
-    E --> E2[Bank Details]
-    E --> E3[Thank You + Footer]
+    E --> E1["10 Standard GST Terms"]
+    E --> E2["Bank Details"]
+    E --> E3["Thank You + Footer"]
+
+    style A fill:#6366f1,color:#fff,stroke:#4f46e5
+    style B fill:#8b5cf6,color:#fff,stroke:#7c3aed
+    style C fill:#a78bfa,color:#fff,stroke:#8b5cf6
+    style D fill:#10b981,color:#fff,stroke:#059669
+    style E fill:#f59e0b,color:#000,stroke:#d97706
+    style D1 fill:#34d399,color:#000,stroke:#10b981
+    style D2 fill:#059669,color:#fff,stroke:#047857
+    style D3 fill:#6ee7b7,color:#000,stroke:#34d399
+    style D4 fill:#6ee7b7,color:#000,stroke:#34d399
+    style D5 fill:#a7f3d0,color:#000,stroke:#6ee7b7
+    style D6 fill:#d1fae5,color:#000,stroke:#a7f3d0
+    style D7 fill:#059669,color:#fff,stroke:#047857
+    style D8 fill:#d1fae5,color:#000,stroke:#a7f3d0
+    style D9 fill:#d1fae5,color:#000,stroke:#a7f3d0
+    style D10 fill:#059669,color:#fff,stroke:#047857
+    style E1 fill:#fbbf24,color:#000,stroke:#f59e0b
+    style E2 fill:#fcd34d,color:#000,stroke:#fbbf24
+    style E3 fill:#fde68a,color:#000,stroke:#fcd34d
 ```
 
 ### 5. Sharing (Download vs WhatsApp)
 
 ```mermaid
 flowchart TD
-    A[sharePDF] --> B{navigator.share?}
-    B -->|Yes| C[Web Share API]
-    C --> D[System share sheet]
-    D --> E((WhatsApp / Email / etc))
-    B -->|No| F[Open wa.me]
-    F --> G[WhatsApp web]
-    A --> H[Also download PDF as backup]
+    A["sharePDF"] --> B{"navigator.share?"}
+    B -->|Yes| C["Web Share API"]
+    C --> D["System share sheet"]
+    D --> E(("WhatsApp / Email"))
+    B -->|No| F["Open wa.me"]
+    F --> G["WhatsApp web"]
+    A --> H["Also download PDF as backup"]
+
+    style A fill:#6366f1,color:#fff,stroke:#4f46e5
+    style B fill:#f59e0b,color:#000,stroke:#d97706
+    style C fill:#22c55e,color:#fff,stroke:#16a34a
+    style D fill:#34d399,color:#000,stroke:#10b981
+    style E fill:#10b981,color:#fff,stroke:#059669
+    style F fill:#f97316,color:#fff,stroke:#ea580c
+    style G fill:#fb923c,color:#fff,stroke:#f97316
+    style H fill:#ec4899,color:#fff,stroke:#db2777
 ```
 
 ### 6. Deleting a Bill
@@ -286,13 +357,17 @@ sequenceDiagram
     participant S as storage.ts
     participant LS as localStorage
 
-    U->>R: Tap "Del" on bill card
+    U->>R: Tap Del on bill card
     R->>S: deleteBill(id)
     S->>LS: Read all bills
     LS-->>S: Bill[]
     S->>S: Filter out matching ID
     S->>LS: Write filtered array
-    R->>R: setBills(getBills()) — re-render
+    R->>R: setBills re-render
+
+    rect rgb(239, 68, 68)
+    Note right of S: Bill removed
+    end
 ```
 
 ### 7. Settings Flow
@@ -308,10 +383,14 @@ sequenceDiagram
     LS-->>S: Settings object
     S-->>U: Form with current values
     U->>S: Edit name, address, GSTIN, logo, GST rate
-    U->>S: Tap "Save Settings"
+    U->>S: Tap Save Settings
     S->>LS: saveSettings(settings)
-    Note over S: Logo: FileReader → base64 → stored
+    Note over S: Logo: FileReader to base64 stored
     U->>U: Navigate back to main page
+
+    rect rgb(99, 102, 241)
+    Note right of LS: Settings persisted
+    end
 ```
 
 ---

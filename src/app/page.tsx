@@ -340,7 +340,6 @@ export default function Home() {
                 search={catalogSearch}
                 onSearchChange={setCatalogSearch}
                 onSelect={pickFromCatalog}
-                onClose={() => { setShowCatalogPicker(false); setCatalogSearch(""); }}
               />
             )}
 

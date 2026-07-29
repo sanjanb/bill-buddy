@@ -1,4 +1,4 @@
-# BillBuddy — Architecture & Data Flow
+# BillBuddy, Architecture and Data Flow
 
 How the app works end-to-end: where data comes from, how it flows through the system, and where it's stored.
 
@@ -6,7 +6,7 @@ How the app works end-to-end: where data comes from, how it flows through the sy
 
 ## Overview
 
-BillBuddy is a client-side Next.js app. There is **no backend, no database, no API calls**. All data lives in the browser's `localStorage`. The server only serves the initial HTML/JS — after that, everything runs in the browser.
+BillBuddy is a client-side Next.js app. There is **no backend, no database, no API calls**. All data lives in the browser's `localStorage`. The server only serves the initial HTML/JS, after that everything runs in the browser.
 
 ```mermaid
 graph LR
@@ -106,7 +106,7 @@ A complete invoice record.
 | `customerPhone` | string | Buyer phone |
 | `gstType` | "intra" \| "inter" | CGST+SGST or IGST |
 | `items` | BillItem[] | 1–5 items |
-| `totalBeforeTax` | number | Sum of (qty × rate) |
+| `totalBeforeTax` | number | Sum of (qty �, rate) |
 | `totalTax` | number | Total GST amount |
 | `grandTotal` | number | totalBeforeTax + totalTax |
 
@@ -151,7 +151,7 @@ All read functions check `typeof window === "undefined"` before accessing localS
 
 ### Storage Limits
 
-localStorage has a ~5MB limit per origin. The logo is the biggest consumer — typically 20–100KB as base64.
+localStorage has a ~5MB limit per origin. The logo is the biggest consumer, typically 20-100KB as base64.
 
 ---
 
@@ -181,7 +181,7 @@ graph LR
     style F fill:#ec4899,color:#fff,stroke:#db2777
 ```
 
-**Example:** 2 × ₹450 rice bags at 18% GST
+**Example:** 2 �, ₹450 rice bags at 18% GST
 - Amount: ₹900
 - CGST (9%): ₹81
 - SGST (9%): ₹81
@@ -397,7 +397,7 @@ sequenceDiagram
 
 ## PDF Layout (2 Pages)
 
-### Page 1 — Tax Invoice
+### Page 1: Tax Invoice
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -430,7 +430,7 @@ sequenceDiagram
 └────────────────────────────────────────┘
 ```
 
-### Page 2 — Terms & Conditions
+### Page 2: Terms and Conditions
 
 ```
 ┌────────────────────────────────────────┐
@@ -461,7 +461,7 @@ sequenceDiagram
 
 | File | Role | Depends On |
 |------|------|-----------|
-| `src/lib/types.ts` | Data type definitions, constants | — |
+| `src/lib/types.ts` | Data type definitions, constants | - |
 | `src/lib/storage.ts` | localStorage CRUD operations | types.ts |
 | `src/lib/gst.ts` | GST math (per-item + totals) | types.ts |
 | `src/lib/pdf.ts` | 2-page PDF rendering, download, share | types.ts, gst.ts, jsPDF |
@@ -472,19 +472,19 @@ sequenceDiagram
 
 ## Key Decisions
 
-1. **No backend** — MVP is fully client-side. Bills are private to the device/browser. No sign-up, no server costs, no latency.
+1. **No backend**: MVP is fully client-side. Bills are private to the device/browser. No sign-up, no server costs, no latency.
 
-2. **localStorage over IndexedDB** — simpler API, sufficient for the data volume (text + small images). IndexedDB would be the upgrade path for structured queries or larger storage.
+2. **localStorage over IndexedDB**: simpler API, sufficient for the data volume (text + small images). IndexedDB would be the upgrade path for structured queries or larger storage.
 
-3. **Base64 logo in localStorage** — avoids managing file storage. Trade-off: logos consume more localStorage space than blob URLs, but stay attached to the data without cleanup logic.
+3. **Base64 logo in localStorage**: avoids managing file storage. Trade-off: logos consume more localStorage space than blob URLs, but stay attached to the data without cleanup logic.
 
-4. **Prepend on save** — bills array is always newest-first for the UI. No sorting needed on display.
+4. **Prepend on save**: bills array is always newest-first for the UI. No sorting needed on display.
 
-5. **Lazy initializers** — `useState(() => localStorageRead())` instead of `useEffect` + `setState`. Avoids React 19 lint errors and unnecessary re-renders. SSR-safe via `typeof window` check.
+5. **Lazy initializers**: `useState(() => localStorageRead())` instead of `useEffect` + `setState`. Avoids React 19 lint errors and unnecessary re-renders. SSR-safe via `typeof window` check.
 
-6. **No product catalog (MVP)** — items are entered fresh each time. A catalog would reduce repetitive data entry for regular customers.
+6. **No product catalog (MVP)**: items are entered fresh each time. A catalog would reduce repetitive data entry for regular customers.
 
-7. **2-page PDF** — Page 1 is the tax invoice (mandatory GST fields, items table, totals, amount in words). Page 2 has terms & conditions, bank details, and thank-you footer. Professional layout matching standard Indian GST invoice templates.
+7. **2-page PDF**: Page 1 is the tax invoice (mandatory GST fields, items table, totals, amount in words). Page 2 has terms and conditions, bank details, and thank-you footer. Professional layout matching standard Indian GST invoice templates.
 
 ---
 

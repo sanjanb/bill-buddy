@@ -360,7 +360,7 @@ export function sharePDF(bill: Bill, settings: Settings): void {
   if (navigator.share) {
     navigator.share({
       title: `Invoice from ${settings.shopName || "Shop"}`,
-      text: `Invoice from ${settings.shopName || "Shop"} — Total: ${formatCurrency(bill.grandTotal)}`,
+      text: `Invoice from ${settings.shopName || "Shop"}, Total: ${formatCurrency(bill.grandTotal)}`,
       files: [file],
     }).catch(() => {
       downloadPDF(bill, settings);

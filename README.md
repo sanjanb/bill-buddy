@@ -2,7 +2,7 @@
 
 # BillBuddy
 
-**GST invoicing for Indian shop owners — right from your phone.**
+**GST invoicing for Indian shop owners, right from your phone.**
 
 Create GST-compliant bills, generate branded PDFs, and share via WhatsApp. No sign-up, no server, no complexity.
 
@@ -18,12 +18,12 @@ Create GST-compliant bills, generate branded PDFs, and share via WhatsApp. No si
 
 ## Why BillBuddy?
 
-Small shop owners in India need to generate GST bills daily. Existing solutions are要么 too complex (full accounting software)要么 too limited (pen and paper). BillBuddy sits in the middle — **fast, free, and focused** on one thing: getting a GST bill into your customer's WhatsApp.
+Small shop owners in India need to generate GST bills daily. Existing solutions are either too complex (full accounting software) or too limited (pen and paper). BillBuddy sits in the middle: **fast, free, and focused** on one thing: getting a GST bill into your customer's WhatsApp.
 
-- **No account needed** — works entirely in your browser
-- **GST compliant** — CGST+SGST (intra-state) and IGST (inter-state) with HSN codes
-- **Branded PDFs** — your shop logo, your details, professional output
-- **One-tap sharing** — WhatsApp, email, or download
+- **No account needed**: works entirely in your browser
+- **GST compliant**: CGST+SGST (intra-state) and IGST (inter-state) with HSN codes
+- **Branded PDFs**: your shop logo, your details, professional output
+- **One-tap sharing**: WhatsApp, email, or download
 
 ## Table of Contents
 
@@ -44,7 +44,7 @@ Small shop owners in India need to generate GST bills daily. Existing solutions 
 ### Bill Creation
 - Add line items with **name, HSN code, quantity, rate, and GST rate**
 - Up to 5 items per bill
-- **Live calculation** — totals update as you type
+- **Live calculation**: totals update as you type
 - Customer name and phone number fields
 
 ### GST Compliance
@@ -75,7 +75,7 @@ Small shop owners in India need to generate GST bills daily. Existing solutions 
 <!-- Replace with actual screenshot or recording -->
 <!-- ![BillBuddy Screenshot](./public/screenshot.png) -->
 
-> **Live demo:** [billbuddy.vercel.app](https://billbuddy.vercel.app) *(deploy your own — see [Deployment](#deployment))*
+> **Live demo:** [billbuddy.vercel.app](https://billbuddy.vercel.app) *(deploy your own, see [Deployment](#deployment))*
 
 ## Tech Stack
 
@@ -93,8 +93,8 @@ Small shop owners in India need to generate GST bills daily. Existing solutions 
 
 ### Prerequisites
 
-- **Node.js 20+** — run `node -v` to verify
-- **npm** — included with Node
+- **Node.js 20+**: run `node -v` to verify
+- **npm**: included with Node
 
 ### Installation
 
@@ -157,7 +157,7 @@ npm run build
 npm start
 ```
 
-Runs as a static site — no database or server runtime needed.
+Runs as a static site: no database or server runtime needed.
 
 ## CI/CD
 
@@ -173,10 +173,10 @@ Runs as a static site — no database or server runtime needed.
 
 ## How It Works
 
-1. **Create a bill** — Enter customer info, add items with HSN codes and rates
-2. **GST calculates automatically** — Toggle between intra-state (CGST+SGST) and inter-state (IGST)
-3. **Download or share** — Generate a branded PDF, download it, or send it via WhatsApp
-4. **Everything stays local** — Bills stored in your browser's localStorage (no server, no sign-up)
+1. **Create a bill**: Enter customer info, add items with HSN codes and rates
+2. **GST calculates automatically**: Toggle between intra-state (CGST+SGST) and inter-state (IGST)
+3. **Download or share**: Generate a branded PDF, download it, or send it via WhatsApp
+4. **Everything stays local**: Bills stored in your browser's localStorage (no server, no sign-up)
 
 ## Roadmap
 
@@ -206,4 +206,4 @@ Then open a Pull Request against `main`.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE) for details.
+MIT. See [LICENSE](./LICENSE) for details.

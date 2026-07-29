@@ -20,7 +20,7 @@ export default function Home() {
   const [settings] = useState<Settings>(() => typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS);
   const [view, setView] = useState<"list" | "form">("list");
 
-  // Form state — initialize items with settings default GST rate
+  // Form state: initialize items with settings default GST rate
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [gstType, setGstType] = useState<"intra" | "inter">("intra");

@@ -26,6 +26,13 @@ export interface Product {
   gstRate: number;
 }
 
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  lastUsed: string; // ISO date string
+}
+
 export interface Settings {
   shopName: string;
   shopAddress: string;

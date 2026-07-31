@@ -1,7 +1,8 @@
-import { Bill, Product, Settings, DEFAULT_SETTINGS } from "./types";
+import { Bill, Product, Customer, Settings, DEFAULT_SETTINGS } from "./types";
 
 const BILLS_KEY = "billbuddy_bills";
 const SETTINGS_KEY = "billbuddy_settings";
+const CUSTOMERS_KEY = "billbuddy_customers";
 
 export function getBills(): Bill[] {
   if (typeof window === "undefined") return [];
@@ -61,4 +62,33 @@ export function saveProduct(product: Product): void {
 export function deleteProduct(id: string): void {
   const products = getProducts().filter((p) => p.id !== id);
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+}
+
+export function getCustomers(): Customer[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(CUSTOMERS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomer(customer: Customer): void {
+  const customers = getCustomers();
+  const idx = customers.findIndex((c) => c.id === customer.id);
+  if (idx >= 0) {
+    customers[idx] = customer;
+  } else {
+    customers.unshift(customer);
+  }
+  localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+}
+
+export function deleteCustomer(id: string): void {
+  const customers = getCustomers().filter((c) => c.id !== id);
+  localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+}
+
+export function findCustomerByPhone(phone: string): Customer | undefined {
+  return getCustomers().find((c) => c.phone === phone);
 }

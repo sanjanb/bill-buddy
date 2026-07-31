@@ -67,7 +67,7 @@ export default function Catalog() {
     <div suppressHydrationWarning className="min-h-screen bg-slate-50">
       <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Link
               href="/"
@@ -81,6 +81,7 @@ export default function Catalog() {
           </div>
           <span className="text-xs text-slate-400">{products.length} items</span>
         </div>
+        <div className="h-px bg-gradient-to-r from-indigo-500/40 via-indigo-400/20 to-transparent mb-6" />
 
         {showForm ? (
           /* ---- ADD/EDIT FORM ---- */

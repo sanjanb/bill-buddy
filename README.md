@@ -187,7 +187,7 @@ Runs as a static site: no database or server runtime needed.
 - [ ] Multi-user / multi-device support
 - [ ] Export reports and GST filings
 
-## Contributing
+## Contributing:
 
 Contributions welcome. Open an issue first for feature requests.
 

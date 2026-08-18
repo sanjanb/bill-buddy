@@ -8,6 +8,7 @@ import { getSettings, saveSettings } from "@/lib/storage";
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(() => typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -23,6 +24,7 @@ export default function SettingsPage() {
   function handleSave() {
     saveSettings(settings);
     setSaved(true);
+    setEditing(false);
     setTimeout(() => setSaved(false), 2000);
   }
 
@@ -51,7 +53,8 @@ export default function SettingsPage() {
                 value={settings.shopName}
                 onChange={(e) => setSettings((s) => ({ ...s, shopName: e.target.value }))}
                 placeholder="My Shop"
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -62,7 +65,8 @@ export default function SettingsPage() {
                 onChange={(e) => setSettings((s) => ({ ...s, shopAddress: e.target.value }))}
                 placeholder="123 Main St, City, State"
                 rows={2}
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] resize-none"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] resize-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -74,7 +78,8 @@ export default function SettingsPage() {
                 onChange={(e) => setSettings((s) => ({ ...s, shopGSTIN: e.target.value.toUpperCase() }))}
                 placeholder="22AAAAA0000A1Z5"
                 maxLength={15}
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] uppercase"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] uppercase disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -89,7 +94,8 @@ export default function SettingsPage() {
               <img src={settings.logo} alt="Logo preview" className="h-16 w-16 object-contain rounded-lg border border-slate-200/60 bg-slate-50/50 p-1" />
               <button
                 onClick={() => { setSettings((s) => ({ ...s, logo: "" })); if (fileRef.current) fileRef.current.value = ""; }}
-                className="text-sm font-medium text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors duration-150"
+                disabled={!editing}
+                className="text-sm font-medium text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Remove
               </button>
@@ -97,10 +103,14 @@ export default function SettingsPage() {
           )}
           <div
             role="button"
-            tabIndex={0}
-            onClick={() => fileRef.current?.click()}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileRef.current?.click(); } }}
-            className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition-all duration-150"
+            tabIndex={editing ? 0 : -1}
+            onClick={() => editing && fileRef.current?.click()}
+            onKeyDown={(e) => { if (editing && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fileRef.current?.click(); } }}
+            className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 transition-all duration-150 ${
+              editing
+                ? "border-slate-200 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30"
+                : "border-slate-100 opacity-60 cursor-not-allowed"
+            }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -125,7 +135,8 @@ export default function SettingsPage() {
             <select
               value={settings.defaultGSTRate}
               onChange={(e) => setSettings((s) => ({ ...s, defaultGSTRate: parseInt(e.target.value) }))}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+              disabled={!editing}
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {GST_RATES.map((r) => (
                 <option key={r} value={r}>{r}%</option>
@@ -145,7 +156,8 @@ export default function SettingsPage() {
                 value={settings.bankName}
                 onChange={(e) => setSettings((s) => ({ ...s, bankName: e.target.value }))}
                 placeholder="HDFC Bank"
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -156,7 +168,8 @@ export default function SettingsPage() {
                 value={settings.bankAccountName}
                 onChange={(e) => setSettings((s) => ({ ...s, bankAccountName: e.target.value }))}
                 placeholder="AQUARIES POWER TECHNOLOGIES"
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -167,7 +180,8 @@ export default function SettingsPage() {
                 value={settings.bankAccountNo}
                 onChange={(e) => setSettings((s) => ({ ...s, bankAccountNo: e.target.value }))}
                 placeholder="XXXXXXXX"
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -179,7 +193,8 @@ export default function SettingsPage() {
                 onChange={(e) => setSettings((s) => ({ ...s, bankIFSC: e.target.value.toUpperCase() }))}
                 placeholder="XXXXX000000"
                 maxLength={11}
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] uppercase"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] uppercase disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -190,23 +205,41 @@ export default function SettingsPage() {
                 value={settings.bankUPI}
                 onChange={(e) => setSettings((s) => ({ ...s, bankUPI: e.target.value }))}
                 placeholder="yourname@upi"
-                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+                disabled={!editing}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
           </div>
         </div>
 
-        {/* Save */}
-        <button
-          onClick={handleSave}
-          className={`w-full py-3.5 px-5 rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] shadow-sm min-h-[52px] ${
-            saved
-              ? "bg-emerald-500 text-white shadow-emerald-200"
-              : "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-indigo-200"
-          }`}
-        >
-          {saved ? "Saved!" : "Save Settings"}
-        </button>
+        {/* Save / Edit */}
+        {editing ? (
+          <div className="flex gap-3 mb-4">
+            <button
+              onClick={() => setEditing(false)}
+              className="flex-1 py-3.5 px-5 rounded-xl font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-all duration-150 active:scale-[0.98] shadow-sm min-h-[52px]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className={`flex-[2] py-3.5 px-5 rounded-xl font-semibold transition-all duration-150 active:scale-[0.98] shadow-sm min-h-[52px] ${
+                saved
+                  ? "bg-emerald-500 text-white shadow-emerald-200"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-indigo-200"
+              }`}
+            >
+              {saved ? "Saved!" : "Save Settings"}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="w-full py-3.5 px-5 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 active:scale-[0.98] shadow-sm shadow-indigo-200 min-h-[52px] mb-4"
+          >
+            Edit
+          </button>
+        )}
       </div>
     </div>
   );

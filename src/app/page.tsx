@@ -2,12 +2,11 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { Bill, BillItem, Product, Settings, GST_RATES, DEFAULT_SETTINGS, Customer } from "@/lib/types";
-import { getBills, saveBill, deleteBill, getSettings, getProducts, getCustomers, saveCustomer, findCustomerByPhone } from "@/lib/storage";
+import { Bill, BillItem, Product, Settings, GST_RATES, DEFAULT_SETTINGS } from "@/lib/types";
+import { getBills, saveBill, deleteBill, getSettings, getProducts } from "@/lib/storage";
 import { calculateBill, formatCurrency } from "@/lib/gst";
-import { downloadPDF, sharePDF } from "@/lib/pdf";
+import { downloadPDF, sharePDF, downloadBillJSON } from "@/lib/pdf";
 import { useToast } from "@/components/Toast";
-import { BillFormSchema } from "@/lib/validation";
 
 function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -24,9 +23,6 @@ export default function Home() {
   const [view, setView] = useState<"list" | "form">("list");
   const [showCatalogPicker, setShowCatalogPicker] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [editingBill, setEditingBill] = useState<Bill | null>(null);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Form state: initialize items with settings default GST rate
   const [customerName, setCustomerName] = useState("");
@@ -36,16 +32,6 @@ export default function Home() {
     const s = typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS;
     return [newItem(s.defaultGSTRate)];
   });
-
-  const handlePhoneChange = (value: string) => {
-    setCustomerPhone(value);
-    if (value.length >= 10) {
-      const existing = findCustomerByPhone(value);
-      if (existing) {
-        setCustomerName(existing.name);
-      }
-    }
-  };
 
   const calc = calculateBill(items, gstType);
 
@@ -81,108 +67,38 @@ export default function Home() {
   }
 
   function handleSave() {
-    const result = BillFormSchema.safeParse({ customerName, customerPhone, gstType, items });
-    if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        const path = issue.path.join(".");
-        if (!errors[path]) errors[path] = issue.message;
-      });
-      setFormErrors(errors);
-      toast("Please fix form errors");
-      return;
-    }
-    setFormErrors({});
     const bill = buildBill();
     saveBill(bill);
-    if (customerName || customerPhone) {
-      const customer: Customer = {
-        id: makeId(),
-        name: customerName,
-        phone: customerPhone,
-        lastUsed: new Date().toISOString(),
-      };
-      saveCustomer(customer);
-    }
     setBills(getBills());
+    downloadBillJSON(bill, settings);
     setView("list");
     resetForm();
     toast("Bill saved");
   }
 
   function handleSaveAndDownload() {
-    const result = BillFormSchema.safeParse({ customerName, customerPhone, gstType, items });
-    if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        const path = issue.path.join(".");
-        if (!errors[path]) errors[path] = issue.message;
-      });
-      setFormErrors(errors);
-      toast("Please fix form errors");
-      return;
-    }
-    setFormErrors({});
     const bill = buildBill();
     saveBill(bill);
-    if (customerName || customerPhone) {
-      const customer: Customer = {
-        id: makeId(),
-        name: customerName,
-        phone: customerPhone,
-        lastUsed: new Date().toISOString(),
-      };
-      saveCustomer(customer);
-    }
     setBills(getBills());
     downloadPDF(bill, settings);
+    downloadBillJSON(bill, settings);
     setView("list");
     resetForm();
     toast("Bill saved, downloading PDF");
   }
 
   function handleShare() {
-    const result = BillFormSchema.safeParse({ customerName, customerPhone, gstType, items });
-    if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        const path = issue.path.join(".");
-        if (!errors[path]) errors[path] = issue.message;
-      });
-      setFormErrors(errors);
-      toast("Please fix form errors");
-      return;
-    }
-    setFormErrors({});
     const bill = buildBill();
     saveBill(bill);
-    if (customerName || customerPhone) {
-      const customer: Customer = {
-        id: makeId(),
-        name: customerName,
-        phone: customerPhone,
-        lastUsed: new Date().toISOString(),
-      };
-      saveCustomer(customer);
-    }
     setBills(getBills());
     sharePDF(bill, settings);
+    downloadBillJSON(bill, settings);
     setView("list");
     resetForm();
     toast("Sharing bill");
   }
 
-  function handleClone(bill: Bill) {
-    setEditingBill(bill);
-    setCustomerName(bill.customerName);
-    setCustomerPhone(bill.customerPhone);
-    setGstType(bill.gstType);
-    setItems(bill.items.map(item => ({ ...item })));
-    setView("form");
-  }
-
   function resetForm() {
-    setEditingBill(null);
     setCustomerName("");
     setCustomerPhone("");
     setGstType("intra");
@@ -194,10 +110,6 @@ export default function Home() {
     setBills(getBills());
     toast("Bill deleted");
   }
-
-  const filteredBills = bills.filter(bill =>
-    bill.customerName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div suppressHydrationWarning className="min-h-screen bg-slate-50">
@@ -229,44 +141,6 @@ export default function Home() {
             </div>
           </div>
           <div className="h-px bg-gradient-to-r from-indigo-500/40 via-indigo-400/20 to-transparent mb-6" />
-
-          {/* Search Bar */}
-          <div className="relative mb-6">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search bills by customer name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-10 py-3 text-sm text-slate-900 placeholder-slate-300 bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200 transition-colors duration-150 min-h-[44px]"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-150 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                aria-label="Clear search"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {searchQuery && (
-            <p className="text-xs text-slate-500 mb-4">
-              {filteredBills.length === 1 ? "1 bill found" : `${filteredBills.length} bills found`}
-            </p>
-          )}
 
           {/* CTA */}
           <button
@@ -312,12 +186,6 @@ export default function Home() {
                       PDF
                     </button>
                     <button
-                      onClick={() => handleClone(bill)}
-                      className="flex-1 text-sm font-medium py-2.5 px-3 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors duration-150 min-h-[44px]"
-                    >
-                      Clone
-                    </button>
-                    <button
                       onClick={() => sharePDF(bill, settings)}
                       className="flex-1 text-sm font-medium py-2.5 px-3 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 active:bg-emerald-200 transition-colors duration-150 min-h-[44px]"
                     >
@@ -345,7 +213,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg font-bold text-slate-900">{editingBill ? "Clone Bill" : "New Bill"}</h1>
+            <h1 className="text-lg font-bold text-slate-900">New Bill</h1>
           </div>
 
           {/* Customer */}
@@ -361,7 +229,6 @@ export default function Home() {
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
                 />
-                {formErrors.customerName && <p className="text-xs text-red-500 mt-1">{formErrors.customerName}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1.5">Phone Number</label>
@@ -369,10 +236,9 @@ export default function Home() {
                   type="tel"
                   placeholder="10-digit mobile number"
                   value={customerPhone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
                 />
-                {formErrors.customerPhone && <p className="text-xs text-red-500 mt-1">{formErrors.customerPhone}</p>}
               </div>
             </div>
           </div>
@@ -404,7 +270,6 @@ export default function Home() {
           {/* Items */}
           <div className="bg-white rounded-xl border border-slate-200/80 p-5 mb-4 shadow-sm">
             <h2 className="font-semibold text-slate-500 mb-3 text-xs uppercase tracking-wider">Items</h2>
-            {formErrors.items && <p className="text-xs text-red-500 mb-3">{formErrors.items}</p>}
             <div className="space-y-3">
               {items.map((item, i) => (
                 <div key={i} className="border border-slate-200/80 rounded-xl p-3.5 bg-slate-50/30">
@@ -428,8 +293,8 @@ export default function Home() {
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-[auto_auto_1fr_auto] gap-2 items-end">
-                    <div className="min-w-[72px]">
+                  <div className="grid grid-cols-4 gap-2">
+                    <div>
                       <label className="block text-[10px] text-slate-400 mb-1 pl-0.5">HSN</label>
                       <input
                         type="text"
@@ -439,7 +304,7 @@ export default function Home() {
                         className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm text-slate-900 placeholder-slate-300 bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[40px]"
                       />
                     </div>
-                    <div className="min-w-[56px]">
+                    <div>
                       <label className="block text-[10px] text-slate-400 mb-1 pl-0.5">Qty</label>
                       <input
                         type="number"
@@ -450,7 +315,7 @@ export default function Home() {
                         className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm text-slate-900 placeholder-slate-300 bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[40px]"
                       />
                     </div>
-                    <div className="min-0">
+                    <div>
                       <label className="block text-[10px] text-slate-400 mb-1 pl-0.5">Rate</label>
                       <input
                         type="number"
@@ -461,7 +326,7 @@ export default function Home() {
                         className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm text-slate-900 placeholder-slate-300 bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[40px]"
                       />
                     </div>
-                    <div className="min-w-[64px]">
+                    <div>
                       <label className="block text-[10px] text-slate-400 mb-1 pl-0.5">GST%</label>
                       <select
                         value={item.gstRate}
@@ -562,7 +427,6 @@ export default function Home() {
           </div>
         </div>
       )}
-      <ToastContainer />
     </div>
   );
 }
@@ -616,3 +480,5 @@ function CatalogPicker({ search, onSearchChange, onSelect }: {
     </div>
   );
 }
+// TODO: Have to check the logic of the complete app
+

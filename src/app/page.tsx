@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Bill, BillItem, Product, Settings, GST_RATES, DEFAULT_SETTINGS } from "@/lib/types";
-import { getBills, saveBill, deleteBill, getSettings, getProducts, getNextInvoiceNumber, incrementInvoiceCounter } from "@/lib/storage";
+import { getBills, saveBill, deleteBill, getProducts, getNextInvoiceNumber, incrementInvoiceCounter } from "@/lib/storage";
+import { BillFormSchema } from "@/lib/validation";
 import { calculateBill, formatCurrency } from "@/lib/gst";
 import { downloadPDF, sharePDF, downloadBillJSON } from "@/lib/pdf";
 import { useToast } from "@/components/Toast";
@@ -18,19 +19,22 @@ function newItem(gstRate: number): BillItem {
 
 export default function Home() {
   const { toast, ToastContainer } = useToast();
-  const [bills, setBills] = useState<Bill[]>(() => typeof window !== "undefined" ? getBills() : []);
-  const [settings] = useState<Settings>(() => typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [settings] = useState<Settings>(DEFAULT_SETTINGS);
   const [view, setView] = useState<"list" | "form">("list");
   const [showCatalogPicker, setShowCatalogPicker] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
+
+  // Load bills from localStorage after mount (avoids SSR hydration mismatch)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setBills(getBills()); }, []);
 
   // Form state: initialize items with settings default GST rate
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [gstType, setGstType] = useState<"intra" | "inter">("intra");
   const [items, setItems] = useState<BillItem[]>(() => {
-    const s = typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS;
-    return [newItem(s.defaultGSTRate)];
+    return [newItem(DEFAULT_SETTINGS.defaultGSTRate)];
   });
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -73,7 +77,26 @@ export default function Home() {
     };
   }
 
+  function validateBill(): boolean {
+    const result = BillFormSchema.safeParse({
+      customerName,
+      customerPhone,
+      gstType,
+      items,
+      dueDate,
+      notes,
+      invoiceNumber,
+    });
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      toast(firstError.message || "Please check your bill details");
+      return false;
+    }
+    return true;
+  }
+
   function handleSave() {
+    if (!validateBill()) return;
     const bill = buildBill();
     saveBill(bill);
     incrementInvoiceCounter();
@@ -85,6 +108,7 @@ export default function Home() {
   }
 
   function handleSaveAndDownload() {
+    if (!validateBill()) return;
     const bill = buildBill();
     saveBill(bill);
     incrementInvoiceCounter();
@@ -97,6 +121,7 @@ export default function Home() {
   }
 
   function handleShare() {
+    if (!validateBill()) return;
     const bill = buildBill();
     saveBill(bill);
     incrementInvoiceCounter();
@@ -132,6 +157,7 @@ export default function Home() {
 
   return (
     <div suppressHydrationWarning className="min-h-screen bg-slate-50">
+      <ToastContainer />
       {view === "list" ? (
         /* ---- BILL LIST ---- */
         <div className="max-w-lg mx-auto px-4 pt-6 pb-24">

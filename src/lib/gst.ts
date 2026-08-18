@@ -23,11 +23,13 @@ export function calculateBill(
     const amount = item.quantity * item.rate;
     const gstAmount = Math.round(amount * item.gstRate / 100 * 100) / 100;
     const isInter = gstType === "inter";
+    const cgst = isInter ? 0 : Math.round(gstAmount / 2 * 100) / 100;
+    const sgst = isInter ? 0 : Math.round((gstAmount - cgst) * 100) / 100;
     return {
       amount,
       gstAmount,
-      cgst: isInter ? 0 : Math.round(gstAmount / 2 * 100) / 100,
-      sgst: isInter ? 0 : Math.round(gstAmount / 2 * 100) / 100,
+      cgst,
+      sgst,
       igst: isInter ? gstAmount : 0,
     };
   });

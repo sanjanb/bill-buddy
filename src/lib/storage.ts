@@ -16,12 +16,22 @@ export function getBills(): Bill[] {
 export function saveBill(bill: Bill): void {
   const bills = getBills();
   bills.unshift(bill); // newest first
-  localStorage.setItem(BILLS_KEY, JSON.stringify(bills));
+  try {
+    localStorage.setItem(BILLS_KEY, JSON.stringify(bills));
+  } catch (e) {
+    console.error("Failed to save bill to localStorage:", e);
+    throw e;
+  }
 }
 
 export function deleteBill(id: string): void {
   const bills = getBills().filter((b) => b.id !== id);
-  localStorage.setItem(BILLS_KEY, JSON.stringify(bills));
+  try {
+    localStorage.setItem(BILLS_KEY, JSON.stringify(bills));
+  } catch (e) {
+    console.error("Failed to delete bill from localStorage:", e);
+    throw e;
+  }
 }
 
 export function getSettings(): Settings {
@@ -34,7 +44,12 @@ export function getSettings(): Settings {
 }
 
 export function saveSettings(settings: Settings): void {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (e) {
+    console.error("Failed to save settings to localStorage:", e);
+    throw e;
+  }
 }
 
 const PRODUCTS_KEY = "billbuddy_products";
@@ -56,12 +71,21 @@ export function saveProduct(product: Product): void {
   } else {
     products.unshift(product);
   }
-  localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  } catch (e) {
+    console.error("Failed to save product to localStorage:", e);
+    throw e;
+  }
 }
 
 export function deleteProduct(id: string): void {
   const products = getProducts().filter((p) => p.id !== id);
-  localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  } catch (e) {
+    console.error("Failed to delete product from localStorage:", e);
+  }
 }
 
 export function getCustomers(): Customer[] {
@@ -81,12 +105,21 @@ export function saveCustomer(customer: Customer): void {
   } else {
     customers.unshift(customer);
   }
-  localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+  try {
+    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+  } catch (e) {
+    console.error("Failed to save customer to localStorage:", e);
+    throw e;
+  }
 }
 
 export function deleteCustomer(id: string): void {
   const customers = getCustomers().filter((c) => c.id !== id);
-  localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+  try {
+    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
+  } catch (e) {
+    console.error("Failed to delete customer from localStorage:", e);
+  }
 }
 
 export function findCustomerByPhone(phone: string): Customer | undefined {
@@ -104,5 +137,9 @@ export function getNextInvoiceNumber(): string {
 export function incrementInvoiceCounter(): void {
   if (typeof window === "undefined") return;
   const counter = parseInt(localStorage.getItem(INVOICE_COUNTER_KEY) || "0", 10);
-  localStorage.setItem(INVOICE_COUNTER_KEY, String(counter + 1));
+  try {
+    localStorage.setItem(INVOICE_COUNTER_KEY, String(counter + 1));
+  } catch (e) {
+    console.error("Failed to increment invoice counter in localStorage:", e);
+  }
 }

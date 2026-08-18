@@ -13,6 +13,9 @@ export const BillFormSchema = z.object({
   customerPhone: z.string().max(15).optional().default(""),
   gstType: z.enum(["intra", "inter"]),
   items: z.array(BillItemSchema).min(1, "At least one item is required"),
+  dueDate: z.string().optional().default(""),
+  notes: z.string().optional().default(""),
+  invoiceNumber: z.string().optional().default(""),
 });
 
 export const SettingsSchema = z.object({

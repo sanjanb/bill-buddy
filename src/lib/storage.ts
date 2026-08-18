@@ -92,3 +92,17 @@ export function deleteCustomer(id: string): void {
 export function findCustomerByPhone(phone: string): Customer | undefined {
   return getCustomers().find((c) => c.phone === phone);
 }
+
+const INVOICE_COUNTER_KEY = "billbuddy_invoice_counter";
+
+export function getNextInvoiceNumber(): string {
+  if (typeof window === "undefined") return "INV-001";
+  const counter = parseInt(localStorage.getItem(INVOICE_COUNTER_KEY) || "0", 10);
+  return `INV-${String(counter + 1).padStart(3, "0")}`;
+}
+
+export function incrementInvoiceCounter(): void {
+  if (typeof window === "undefined") return;
+  const counter = parseInt(localStorage.getItem(INVOICE_COUNTER_KEY) || "0", 10);
+  localStorage.setItem(INVOICE_COUNTER_KEY, String(counter + 1));
+}

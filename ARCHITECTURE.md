@@ -101,14 +101,17 @@ A complete invoice record.
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | string | Unique ID (timestamp + random) |
+| `invoiceNumber` | string | Sequential number, e.g. "INV-001" |
 | `date` | string | ISO datetime of creation |
 | `customerName` | string | Buyer name |
 | `customerPhone` | string | Buyer phone |
 | `gstType` | "intra" \| "inter" | CGST+SGST or IGST |
 | `items` | BillItem[] | 1–5 items |
-| `totalBeforeTax` | number | Sum of (qty �, rate) |
+| `totalBeforeTax` | number | Sum of (qty × rate) |
 | `totalTax` | number | Total GST amount |
 | `grandTotal` | number | totalBeforeTax + totalTax |
+| `dueDate` | string | Optional due date (ISO), empty if not set |
+| `notes` | string | Optional notes/memo, empty if not set |
 
 ### Settings
 
@@ -128,12 +131,13 @@ Shop configuration, persisted across sessions.
 
 File: `src/lib/storage.ts`
 
-All persistence uses **localStorage** with two keys:
+All persistence uses **localStorage** with three keys:
 
 | Key | Contents | Format |
 |-----|----------|--------|
 | `billbuddy_bills` | Array of Bill objects | JSON |
 | `billbuddy_settings` | Settings object | JSON |
+| `billbuddy_invoice_counter` | Invoice counter (number) | Number |
 
 ### Functions
 
@@ -144,6 +148,8 @@ All persistence uses **localStorage** with two keys:
 | `deleteBill(id)` | Filters out by ID, writes back |
 | `getSettings()` | Reads settings, merges with defaults |
 | `saveSettings(settings)` | Writes settings object |
+| `getNextInvoiceNumber()` | Returns next invoice number (INV-XXX format) |
+| `incrementInvoiceCounter()` | Increments the stored counter |
 
 ### SSR Safety
 
@@ -482,7 +488,7 @@ sequenceDiagram
 
 5. **Lazy initializers**: `useState(() => localStorageRead())` instead of `useEffect` + `setState`. Avoids React 19 lint errors and unnecessary re-renders. SSR-safe via `typeof window` check.
 
-6. **No product catalog (MVP)**: items are entered fresh each time. A catalog would reduce repetitive data entry for regular customers.
+6. **Product catalog implemented**: items can be saved and reused from a catalog, reducing repetitive data entry for regular customers.
 
 7. **2-page PDF**: Page 1 is the tax invoice (mandatory GST fields, items table, totals, amount in words). Page 2 has terms and conditions, bank details, and thank-you footer. Professional layout matching standard Indian GST invoice templates.
 
@@ -496,7 +502,6 @@ sequenceDiagram
 | Manual item entry | Product catalog with search |
 | Single browser | Multi-device via accounts |
 | No offline support | Service worker + cache |
-| Basic bill ID (timestamp) | Sequential invoice numbers |
-| No edit after save | Editable/draft bills |
+| Sequential invoice numbers | — |
 | No tax filing export | GST report CSV/JSON export |
 | Placeholder bank details | Configurable bank details in Settings |

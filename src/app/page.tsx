@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Bill, BillItem, Product, Settings, GST_RATES, DEFAULT_SETTINGS } from "@/lib/types";
-import { getBills, saveBill, deleteBill, getSettings, getProducts } from "@/lib/storage";
+import { getBills, saveBill, deleteBill, getSettings, getProducts, getNextInvoiceNumber, incrementInvoiceCounter } from "@/lib/storage";
 import { calculateBill, formatCurrency } from "@/lib/gst";
 import { downloadPDF, sharePDF, downloadBillJSON } from "@/lib/pdf";
 import { useToast } from "@/components/Toast";
@@ -32,6 +32,10 @@ export default function Home() {
     const s = typeof window !== "undefined" ? getSettings() : DEFAULT_SETTINGS;
     return [newItem(s.defaultGSTRate)];
   });
+  const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "amount" | "customer">("date");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
 
   const calc = calculateBill(items, gstType);
 
@@ -55,11 +59,14 @@ export default function Home() {
   function buildBill(): Bill {
     return {
       id: makeId(),
+      invoiceNumber,
       date: new Date().toISOString(),
+      dueDate,
       customerName,
       customerPhone,
       gstType,
       items,
+      notes,
       totalBeforeTax: calc.totalBeforeTax,
       totalTax: calc.totalGST,
       grandTotal: calc.grandTotal,
@@ -69,6 +76,7 @@ export default function Home() {
   function handleSave() {
     const bill = buildBill();
     saveBill(bill);
+    incrementInvoiceCounter();
     setBills(getBills());
     downloadBillJSON(bill, settings);
     setView("list");
@@ -79,6 +87,7 @@ export default function Home() {
   function handleSaveAndDownload() {
     const bill = buildBill();
     saveBill(bill);
+    incrementInvoiceCounter();
     setBills(getBills());
     downloadPDF(bill, settings);
     downloadBillJSON(bill, settings);
@@ -90,6 +99,7 @@ export default function Home() {
   function handleShare() {
     const bill = buildBill();
     saveBill(bill);
+    incrementInvoiceCounter();
     setBills(getBills());
     sharePDF(bill, settings);
     downloadBillJSON(bill, settings);
@@ -103,6 +113,9 @@ export default function Home() {
     setCustomerPhone("");
     setGstType("intra");
     setItems([newItem(settings.defaultGSTRate)]);
+    setDueDate("");
+    setNotes("");
+    setInvoiceNumber(getNextInvoiceNumber());
   }
 
   function handleDelete(id: string) {
@@ -110,6 +123,12 @@ export default function Home() {
     setBills(getBills());
     toast("Bill deleted");
   }
+
+  const sortedBills = [...bills].sort((a, b) => {
+    if (sortBy === "date") return new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (sortBy === "amount") return b.grandTotal - a.grandTotal;
+    return (a.customerName || "Walk-in").localeCompare(b.customerName || "Walk-in");
+  });
 
   return (
     <div suppressHydrationWarning className="min-h-screen bg-slate-50">
@@ -144,11 +163,29 @@ export default function Home() {
 
           {/* CTA */}
           <button
-            onClick={() => setView("form")}
+            onClick={() => { setInvoiceNumber(getNextInvoiceNumber()); setView("form"); }}
             className="w-full bg-gradient-to-br from-indigo-600 to-indigo-700 text-white py-3.5 px-5 rounded-xl font-semibold text-base hover:from-indigo-700 hover:to-indigo-800 active:scale-[0.98] transition-all duration-150 mb-8 shadow-sm shadow-indigo-200 min-h-[52px]"
           >
             + New Bill
           </button>
+
+          {bills.length > 0 && (
+            <div className="flex gap-2 mb-4">
+              {(["date", "amount", "customer"] as const).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setSortBy(key)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors duration-150 min-h-[32px] ${
+                    sortBy === key
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {key === "date" ? "Date" : key === "amount" ? "Amount" : "Customer"}
+                </button>
+              ))}
+            </div>
+          )}
 
           {bills.length === 0 ? (
             <div className="text-center py-20">
@@ -162,14 +199,24 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-3">
-              {bills.map((bill, i) => (
+              {sortedBills.map((bill, i) => (
                 <div key={bill.id} className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-900 text-base truncate">{bill.customerName || "Walk-in"}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {new Date(bill.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {bill.invoiceNumber && (
+                          <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">{bill.invoiceNumber}</span>
+                        )}
+                        <span className="text-xs text-slate-400">
+                          {new Date(bill.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                        {bill.dueDate && (
+                          <span className="text-xs text-amber-600">
+                            Due {new Date(bill.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right ml-3 flex-shrink-0">
                       <p className="font-bold text-slate-900 text-lg leading-tight">{formatCurrency(bill.grandTotal)}</p>
@@ -179,6 +226,21 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="flex gap-2 pt-3 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        setCustomerName(bill.customerName);
+                        setCustomerPhone(bill.customerPhone);
+                        setGstType(bill.gstType);
+                        setItems(bill.items.map((it) => ({ ...it })));
+                        setDueDate(bill.dueDate);
+                        setNotes(bill.notes);
+                        setInvoiceNumber(getNextInvoiceNumber());
+                        setView("form");
+                      }}
+                      className="flex-1 text-sm font-medium py-2.5 px-3 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 active:bg-amber-200 transition-colors duration-150 min-h-[44px]"
+                    >
+                      Copy
+                    </button>
                     <button
                       onClick={() => downloadPDF(bill, settings)}
                       className="flex-1 text-sm font-medium py-2.5 px-3 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors duration-150 min-h-[44px]"
@@ -213,7 +275,10 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg font-bold text-slate-900">New Bill</h1>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900">New Bill</h1>
+              <p className="text-xs text-slate-400">{invoiceNumber}</p>
+            </div>
           </div>
 
           {/* Customer */}
@@ -237,6 +302,15 @@ export default function Home() {
                   placeholder="10-digit mobile number"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Due Date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
                 />
               </div>
@@ -265,6 +339,17 @@ export default function Home() {
             <p className="text-xs text-slate-400 mt-2.5 pl-1">
               {gstType === "intra" ? "Applies CGST + SGST" : "Applies IGST"}
             </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 mb-4 shadow-sm">
+            <h2 className="font-semibold text-slate-500 mb-3 text-xs uppercase tracking-wider">Notes</h2>
+            <textarea
+              placeholder="Optional notes or memo..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 resize-none"
+            />
           </div>
 
           {/* Items */}

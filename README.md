@@ -46,6 +46,8 @@ Small shop owners in India need to generate GST bills daily. Existing solutions 
 - Up to 5 items per bill
 - **Live calculation**: totals update as you type
 - Customer name and phone number fields
+- **Sequential invoice numbers** (INV-001, INV-002...)
+- Optional **due date** and **notes/memo** fields
 
 ### GST Compliance
 - **Intra-state:** CGST + SGST split (e.g., 9% + 9% for 18% slab)
@@ -56,8 +58,9 @@ Small shop owners in India need to generate GST bills daily. Existing solutions 
 
 ### PDF Generation & Sharing
 - Professional PDF with **shop logo and branding**
-- Auto-generated bill number with date
+- **Sequential invoice numbers** (INV-001, INV-002...)
 - Itemized table with HSN codes, quantities, rates, and tax breakdown
+- **Due date and notes included when set**
 - **Download** to device or **share via WhatsApp** (Web Share API)
 
 ### Custom Branding
@@ -69,6 +72,9 @@ Small shop owners in India need to generate GST bills daily. Existing solutions 
 - View all past bills with date, customer, total, and GST type
 - Re-download or re-share any previous bill
 - Delete bills you no longer need
+- **Sort bills by date, amount, or customer name**
+- **Duplicate any previous bill** as a starting point for a new one
+- **Bills auto-export as JSON** alongside PDFs
 
 ## Demo
 
@@ -126,7 +132,7 @@ billbuddy/
 │   │   │   └── page.tsx            # Shop settings (name, logo, GSTIN)
 │   │   └── globals.css             # Global styles, focus rings
 │   └── lib/
-│       ├── types.ts                # BillItem, Bill, Settings interfaces
+│       ├── types.ts                # BillItem, Bill, Settings, Product, Customer interfaces
 │       ├── storage.ts              # localStorage CRUD (SSR-safe)
 │       ├── gst.ts                  # GST calculation (CGST/SGST/IGST)
 │       └── pdf.ts                  # PDF generation, download, share
@@ -180,12 +186,14 @@ Runs as a static site: no database or server runtime needed.
 
 ## Roadmap
 
-- [ ] Product catalog with saved items
+- [x] Product catalog with saved items
 - [ ] Customer database and history
 - [ ] Cloud sync across devices
 - [ ] Offline-first with service worker
 - [ ] Multi-user / multi-device support
 - [ ] Export reports and GST filings
+- [ ] Bill editing after save
+- [ ] Payment tracking (paid/unpaid)
 
 ## Contributing:
 

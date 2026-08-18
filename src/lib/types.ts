@@ -8,11 +8,14 @@ export interface BillItem {
 
 export interface Bill {
   id: string;
+  invoiceNumber: string;
   date: string; // ISO date string
+  dueDate: string;
   customerName: string;
   customerPhone: string;
   gstType: "intra" | "inter";
   items: BillItem[];
+  notes: string;
   totalBeforeTax: number;
   totalTax: number;
   grandTotal: number;

@@ -70,7 +70,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   // Top Accent Bar
   doc.setFillColor(...BRAND);
   doc.rect(0, 0, W, 4, "F");
-  
+
   y += 5; // Move down below the bar
 
   // ── Header Section ──
@@ -111,7 +111,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_MUTED);
   doc.setFont("helvetica", "bold");
-  
+
   const metaY = y + 18;
   doc.text("Invoice No:", W - M - 40, metaY);
   doc.text("Date:", W - M - 40, metaY + 5);
@@ -137,12 +137,12 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_MUTED);
   doc.text("BILL TO", M + 5, y + 8);
-  
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(...TEXT_MAIN);
   doc.text(bill.customerName || "Walk-in Customer", M + 5, y + 14);
-  
+
   if (bill.customerPhone) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -223,7 +223,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   y = (doc as any).lastAutoTable.finalY + 10;
 
   // ── Summary Block ──
-  const summaryX = M + CW - 75; 
+  const summaryX = M + CW - 75;
   const labelW = 35;
   const valW = 40;
   const lineH = 7;
@@ -264,7 +264,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   // Grand Total Block
   doc.setFillColor(...BG_LIGHT);
   doc.roundedRect(summaryX - 5, y - 1, labelW + valW + 10, 10, 2, 2, "F");
-  
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(...BRAND);
@@ -277,7 +277,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_MUTED);
   doc.text("Amount in Words:", M, y);
-  
+
   doc.setFont("helvetica", "bolditalic");
   doc.setTextColor(...TEXT_MAIN);
   const words = numberToWords(calc.grandTotal);
@@ -306,24 +306,24 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   doc.setFontSize(9.5);
   doc.setTextColor(...TEXT_MAIN);
   doc.text("For " + (settings.shopName || "Shop"), W - M, sigY, { align: "right" });
-  
+
   doc.setDrawColor(156, 163, 175); // Gray 400
   doc.setLineWidth(0.3);
   doc.line(W - M - 50, sigY + 15, W - M, sigY + 15);
-  
+
   doc.setFontSize(8.5);
   doc.setTextColor(...TEXT_MUTED);
   doc.text("Authorised Signatory", W - M, sigY + 20, { align: "right" });
 
   // ─── PAGE 2: TERMS & CONDITIONS ───
   doc.addPage();
-  
+
   y = M;
 
   // Top Accent Bar
   doc.setFillColor(...BRAND);
   doc.rect(0, 0, W, 4, "F");
-  
+
   y += 15;
 
   // Title
@@ -332,7 +332,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   doc.setTextColor(...TEXT_MAIN);
   doc.text("TERMS & CONDITIONS", M, y);
   y += 10;
-  
+
   doc.setDrawColor(229, 231, 235);
   doc.line(M, y, W - M, y);
   y += 10;
@@ -362,7 +362,7 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
     doc.text(term, M, y);
     y += 6.5;
   }
-  
+
   y += 10;
   doc.setDrawColor(229, 231, 235);
   doc.line(M, y, W - M, y);
@@ -378,22 +378,22 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9.5);
   doc.setTextColor(...TEXT_MUTED);
-  doc.text(`Bank Name: ${settings.shopName || "Your Bank"}`, M, y);
+  doc.text(`Bank Name: ${settings.bankName || "Your Bank"}`, M, y);
   y += 6.5;
-  doc.text("Account Name: " + (settings.shopName || "Your Name"), M, y);
+  doc.text("Account Name: " + (settings.bankAccountName || "Your Name"), M, y);
   y += 6.5;
-  doc.text("Account No: XXXXXXXX", M, y);
+  doc.text("Account No: " + (settings.bankAccountNo || "XXXXXXXX"), M, y);
   y += 6.5;
-  doc.text("IFSC Code: XXXXX000000", M, y);
+  doc.text("IFSC Code: " + (settings.bankIFSC || "XXXXX000000"), M, y);
   y += 6.5;
-  doc.text("UPI ID: yourname@upi", M, y);
+  doc.text("UPI ID: " + (settings.bankUPI || "yourname@upi"), M, y);
 
   y += 20;
 
   // ── Thank You ──
   doc.setFillColor(...BG_LIGHT);
   doc.roundedRect(M, y, CW, 20, 2, 2, "F");
-  
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(...BRAND);

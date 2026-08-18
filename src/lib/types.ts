@@ -42,6 +42,11 @@ export interface Settings {
   shopGSTIN: string;
   logo: string; // base64 data URL
   defaultGSTRate: number;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNo: string;
+  bankIFSC: string;
+  bankUPI: string;
 }
 
 export const GST_RATES = [0, 5, 12, 18, 28] as const;
@@ -52,4 +57,9 @@ export const DEFAULT_SETTINGS: Settings = {
   shopGSTIN: "",
   logo: "",
   defaultGSTRate: 18,
+  bankName: "",
+  bankAccountName: "",
+  bankAccountNo: "",
+  bankIFSC: "",
+  bankUPI: "",
 };

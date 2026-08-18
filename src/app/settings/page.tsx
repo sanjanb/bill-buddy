@@ -134,6 +134,68 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Bank Details */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 mb-6 shadow-sm">
+          <h2 className="font-semibold text-slate-500 mb-3 text-xs uppercase tracking-wider">Bank Details</h2>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Bank Name</label>
+              <input
+                type="text"
+                value={settings.bankName}
+                onChange={(e) => setSettings((s) => ({ ...s, bankName: e.target.value }))}
+                placeholder="HDFC Bank"
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Account Name</label>
+              <input
+                type="text"
+                value={settings.bankAccountName}
+                onChange={(e) => setSettings((s) => ({ ...s, bankAccountName: e.target.value }))}
+                placeholder="AQUARIES POWER TECHNOLOGIES"
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Account Number</label>
+              <input
+                type="text"
+                value={settings.bankAccountNo}
+                onChange={(e) => setSettings((s) => ({ ...s, bankAccountNo: e.target.value }))}
+                placeholder="XXXXXXXX"
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">IFSC Code</label>
+              <input
+                type="text"
+                value={settings.bankIFSC}
+                onChange={(e) => setSettings((s) => ({ ...s, bankIFSC: e.target.value.toUpperCase() }))}
+                placeholder="XXXXX000000"
+                maxLength={11}
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px] uppercase"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">UPI ID</label>
+              <input
+                type="text"
+                value={settings.bankUPI}
+                onChange={(e) => setSettings((s) => ({ ...s, bankUPI: e.target.value }))}
+                placeholder="yourname@upi"
+                className="w-full border border-slate-200 rounded-lg px-3.5 py-3 text-sm text-slate-900 placeholder-slate-300 bg-slate-50/50 focus:bg-white focus:border-indigo-300 transition-colors duration-150 min-h-[44px]"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Save */}
         <button
           onClick={handleSave}

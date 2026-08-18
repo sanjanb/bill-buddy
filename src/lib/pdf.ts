@@ -208,9 +208,9 @@ export function generateBillPDF(bill: Bill, settings: Settings): jsPDF {
     },
     columnStyles: {
       0: { cellWidth: 10, halign: "center" },
-      1: { cellWidth: isInter ? 40 : 34 },
-      2: { halign: "center", cellWidth: 16 },
-      3: { halign: "center", cellWidth: 12 },
+      1: { cellWidth: isInter ? 40 : 30 },
+      2: { halign: "center", cellWidth: 14 },
+      3: { halign: "center", cellWidth: 16 },
       4: { halign: "right", cellWidth: 22 },
       5: { halign: "right", cellWidth: 22 },
       6: { halign: "right", cellWidth: 20 },

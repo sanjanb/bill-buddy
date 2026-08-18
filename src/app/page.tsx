@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Bill, BillItem, Product, Settings, GST_RATES, DEFAULT_SETTINGS } from "@/lib/types";
-import { getBills, saveBill, deleteBill, getProducts, getNextInvoiceNumber, incrementInvoiceCounter } from "@/lib/storage";
+import { getBills, saveBill, deleteBill, getProducts, getSettings, getNextInvoiceNumber, incrementInvoiceCounter } from "@/lib/storage";
 import { BillFormSchema } from "@/lib/validation";
 import { calculateBill, formatCurrency } from "@/lib/gst";
 import { downloadPDF, sharePDF, downloadBillJSON } from "@/lib/pdf";
@@ -20,14 +20,14 @@ function newItem(gstRate: number): BillItem {
 export default function Home() {
   const { toast, ToastContainer } = useToast();
   const [bills, setBills] = useState<Bill[]>([]);
-  const [settings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [view, setView] = useState<"list" | "form">("list");
   const [showCatalogPicker, setShowCatalogPicker] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
 
-  // Load bills from localStorage after mount (avoids SSR hydration mismatch)
+  // Load bills and settings from localStorage after mount (avoids SSR hydration mismatch)
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setBills(getBills()); }, []);
+  useEffect(() => { setBills(getBills()); setSettings(getSettings()); }, []);
 
   // Form state: initialize items with settings default GST rate
   const [customerName, setCustomerName] = useState("");
